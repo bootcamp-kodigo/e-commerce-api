@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,4 +32,9 @@ Route::prefix('orders')->middleware('auth:api')->group(function () {
     Route::get('/', [OrderController::class, 'index']);
     Route::get('/{order}', [OrderController::class, 'show']);
     Route::post('/', [OrderController::class, 'store']);
+});
+
+Route::prefix('payments')->middleware('auth:api')->group(function () {
+    Route::post('/create-intent/{order}', [PaymentController::class, 'createPaymentIntent']);
+    Route::post('/confirm', [PaymentController::class, 'confirmPayment']);
 });

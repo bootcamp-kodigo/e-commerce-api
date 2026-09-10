@@ -14,7 +14,7 @@ class OrderController extends Controller
     public function index(): JsonResponse
     {
         $orders = auth()->user()->orders()
-            ->with('items.product')
+            ->with(['items.product', 'payment'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
