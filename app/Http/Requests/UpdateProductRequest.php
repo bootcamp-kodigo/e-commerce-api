@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Traits\HasValidationMessages;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProductRequest extends FormRequest
 {
+    use HasValidationMessages;
+
     public function authorize(): bool
     {
         return true;
@@ -29,14 +31,6 @@ class UpdateProductRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
-            'sku.unique' => 'Este SKU ya está registrado.',
-            'name.max' => 'El nombre no puede exceder 255 caracteres.',
-            'price.numeric' => 'El precio debe ser un número.',
-            'price.min' => 'El precio debe ser mayor a 0.',
-            'stock.integer' => 'El stock debe ser un número entero.',
-            'stock.min' => 'El stock no puede ser negativo.',
-            'image_url.url' => 'La URL de la imagen no es válida.',
-        ];
+        return $this->getProductMessages();
     }
 }

@@ -2,14 +2,13 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Traits\HasValidationMessages;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreOrderRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    use HasValidationMessages;
+
     public function authorize(): bool
     {
         return true;
@@ -28,17 +27,6 @@ class StoreOrderRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
-            'items.required' => 'La orden debe contener al menos un producto.',
-            'items.array' => 'Los items deben ser un arreglo válido.',
-            'items.min' => 'La orden debe contener al menos un producto.',
-            'items.*.product_id.required' => 'El ID del producto es obligatorio.',
-            'items.*.product_id.exists' => 'Uno o más productos no existen.',
-            'items.*.quantity.required' => 'La cantidad es obligatoria.',
-            'items.*.quantity.integer' => 'La cantidad debe ser un número entero.',
-            'items.*.quantity.min' => 'La cantidad mínima es 1.',
-            'shipping_address.required' => 'La dirección de envío es obligatoria.',
-            'shipping_address.max' => 'La dirección no puede exceder 500 caracteres.',
-        ];
+        return $this->getOrderMessages();
     }
 }

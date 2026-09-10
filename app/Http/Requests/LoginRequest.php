@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Traits\HasValidationMessages;
 use Illuminate\Foundation\Http\FormRequest;
 
 class LoginRequest extends FormRequest
 {
+    use HasValidationMessages;
+
     public function authorize(): bool
     {
         return true;
@@ -22,10 +24,6 @@ class LoginRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
-            'email.required' => 'El email es obligatorio.',
-            'email.email' => 'El email debe tener un formato válido.',
-            'password.required' => 'La contraseña es obligatoria.',
-        ];
+        return $this->getAuthMessages();
     }
 }

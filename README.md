@@ -216,25 +216,38 @@ curl -X POST http://localhost:8000/api/payments/confirm \
 
 ```
 app/
+├── Contracts/                          # Interfaces (Dependency Inversion)
+│   ├── AuthServiceInterface.php
+│   ├── OrderServiceInterface.php
+│   ├── PaymentServiceInterface.php
+│   ├── ProductServiceInterface.php
+│   └── TransactionServiceInterface.php
 ├── Exceptions/
-│   └── ApiExceptionHandler.php    # Manejo global de errores
+│   └── ApiExceptionHandler.php         # Manejo global de errores
 ├── Http/
-│   ├── Controllers/
-│   │   ├── AuthController.php     # Autenticación JWT
-│   │   ├── ProductController.php  # CRUD productos
-│   │   ├── OrderController.php    # Gestión de órdenes
-│   │   └── PaymentController.php  # Pagos con Stripe
-│   ├── Requests/                  # Form Requests (validaciones)
+│   ├── Controllers/                    # Thin controllers (solo delegan)
+│   │   ├── AuthController.php
+│   │   ├── ProductController.php
+│   │   ├── OrderController.php
+│   │   └── PaymentController.php
+│   ├── Requests/                       # Form Requests (validaciones)
 │   └── Swagger/
-│       └── Schemas.php            # Schemas OpenAPI
+│       └── Schemas.php                 # Schemas OpenAPI
 ├── Models/
 │   ├── User.php
 │   ├── Product.php
 │   ├── Order.php
 │   ├── OrderItem.php
 │   └── Payment.php
-└── Services/
-    └── StripeService.php          # Lógica de Stripe
+├── Services/                           # Lógica de negocio (Single Responsibility)
+│   ├── AuthService.php                 # Autenticación JWT
+│   ├── OrderService.php                # Gestión de órdenes
+│   ├── PaymentService.php              # Orquestador de pagos
+│   ├── ProductService.php              # Gestión de productos
+│   ├── StripeService.php               # Integración con Stripe
+│   └── TransactionService.php          # Registro de transacciones en BD
+└── Traits/
+    └── HasValidationMessages.php       # Mensajes de validación centralizados
 ```
 
 ## Base de Datos

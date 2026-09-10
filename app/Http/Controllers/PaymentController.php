@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Services\StripeService;
+use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -14,11 +14,11 @@ use OpenApi\Attributes as OA;
 )]
 class PaymentController extends Controller
 {
-    private StripeService $stripeService;
+    private PaymentService $paymentService;
 
-    public function __construct(StripeService $stripeService)
+    public function __construct(PaymentService $paymentService)
     {
-        $this->stripeService = $stripeService;
+        $this->paymentService = $paymentService;
     }
 
     #[OA\Post(
@@ -71,38 +71,20 @@ class PaymentController extends Controller
     )]
     public function createPaymentIntent(Order $order): JsonResponse
     {
-        if ($order->user_id !== auth()->id()) {
-            return response()->json(['message' => 'No autorizado.'], 403);
-        }
-
-        if ($order->status !== 'pending') {
-            return response()->json([
-                'message' => 'Esta orden no puede ser pagada.',
-                'status' => $order->status,
-            ], 422);
-        }
-
-        if ($order->payment && $order->payment->status === 'succeeded') {
-            return response()->json([
-                'message' => 'Esta orden ya fue pagada.',
-            ], 422);
-        }
-
         try {
-            $paymentIntent = $this->stripeService->createPaymentIntent($order);
+            $result = $this->paymentService->createPaymentIntentForOrder($order, auth()->user());
 
             return response()->json([
                 'message' => 'PaymentIntent creado exitosamente.',
-                'client_secret' => $paymentIntent->client_secret,
-                'payment_intent_id' => $paymentIntent->id,
-                'amount' => $order->total,
-                'currency' => config('stripe.currency', 'usd'),
+                ...$result,
             ]);
         } catch (\Exception $e) {
+            $statusCode = $e->getCode() >= 400 && $e->getCode() < 500 ? $e->getCode() : 500;
+
             return response()->json([
                 'message' => 'Error al procesar el pago.',
                 'error' => $e->getMessage(),
-            ], 500);
+            ], $statusCode);
         }
     }
 
@@ -160,35 +142,22 @@ class PaymentController extends Controller
         ]);
 
         try {
-            $paymentIntent = $this->stripeService->confirmPayment($request->payment_intent_id);
-
-            $payment = \App\Models\Payment::where('stripe_payment_intent_id', $paymentIntent->id)->first();
-
-            if (!$payment) {
-                return response()->json([
-                    'message' => 'Pago no encontrado.',
-                ], 404);
-            }
-
-            if ($payment->order->user_id !== auth()->id()) {
-                return response()->json(['message' => 'No autorizado.'], 403);
-            }
-
-            $this->stripeService->updatePaymentStatus($payment, $paymentIntent);
-
-            $payment->refresh();
+            $result = $this->paymentService->confirmPaymentForUser(
+                $request->payment_intent_id,
+                auth()->user()
+            );
 
             return response()->json([
                 'message' => 'Pago procesado exitosamente.',
-                'payment' => $payment,
-                'order' => $payment->order,
-                'status' => $paymentIntent->status,
+                ...$result,
             ]);
         } catch (\Exception $e) {
+            $statusCode = $e->getCode() >= 400 && $e->getCode() < 500 ? $e->getCode() : 500;
+
             return response()->json([
                 'message' => 'Error al confirmar el pago.',
                 'error' => $e->getMessage(),
-            ], 500);
+            ], $statusCode);
         }
     }
 }

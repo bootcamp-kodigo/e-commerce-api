@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\OrderServiceInterface;
 use App\Http\Requests\StoreOrderRequest;
 use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Product;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -16,6 +14,13 @@ use OpenApi\Attributes as OA;
 )]
 class OrderController extends Controller
 {
+    private OrderServiceInterface $orderService;
+
+    public function __construct(OrderServiceInterface $orderService)
+    {
+        $this->orderService = $orderService;
+    }
+
     #[OA\Get(
         path: '/orders',
         summary: 'Listar órdenes del usuario',
@@ -57,10 +62,7 @@ class OrderController extends Controller
     )]
     public function index(): JsonResponse
     {
-        $orders = auth()->user()->orders()
-            ->with(['items.product', 'payment'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $orders = $this->orderService->getUserOrders(auth()->user());
 
         return response()->json($orders);
     }
@@ -103,13 +105,13 @@ class OrderController extends Controller
     )]
     public function show(Order $order): JsonResponse
     {
-        if ($order->user_id !== auth()->id()) {
+        $userOrder = $this->orderService->getOrderForUser($order->id, auth()->user());
+
+        if (!$userOrder) {
             return response()->json(['message' => 'No autorizado.'], 403);
         }
 
-        $order->load('items.product', 'payment');
-
-        return response()->json($order);
+        return response()->json($userOrder);
     }
 
     #[OA\Post(
@@ -162,46 +164,7 @@ class OrderController extends Controller
     )]
     public function store(StoreOrderRequest $request): JsonResponse
     {
-        $order = DB::transaction(function () use ($request) {
-            $total = 0;
-            $itemsData = [];
-
-            foreach ($request->items as $item) {
-                $product = Product::findOrFail($item['product_id']);
-
-                if ($product->stock < $item['quantity']) {
-                    abort(422, "Stock insuficiente para el producto: {$product->name}");
-                }
-
-                $subtotal = $product->price * $item['quantity'];
-                $total += $subtotal;
-
-                $itemsData[] = [
-                    'product_id' => $product->id,
-                    'quantity' => $item['quantity'],
-                    'price' => $product->price,
-                    'subtotal' => $subtotal,
-                ];
-
-                $product->decrement('stock', $item['quantity']);
-            }
-
-            $order = Order::create([
-                'user_id' => auth()->id(),
-                'total' => $total,
-                'status' => 'pending',
-                'shipping_address' => $request->shipping_address,
-                'notes' => $request->notes,
-            ]);
-
-            foreach ($itemsData as $itemData) {
-                $order->items()->create($itemData);
-            }
-
-            return $order;
-        });
-
-        $order->load('items.product');
+        $order = $this->orderService->createOrder($request->validated(), auth()->user());
 
         return response()->json([
             'message' => 'Orden creada exitosamente.',
