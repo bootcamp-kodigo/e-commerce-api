@@ -38,12 +38,12 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "example": "Juan Pérez"
+                                        "example": "Javier Reyes"
                                     },
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "juan@example.com"
+                                        "example": "javier@kodigo.com"
                                     },
                                     "password": {
                                         "type": "string",
@@ -57,7 +57,7 @@
                                     },
                                     "phone": {
                                         "type": "string",
-                                        "example": "+1234567890"
+                                        "example": "+50379326512"
                                     }
                                 },
                                 "type": "object"
@@ -139,7 +139,7 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "john@example.com"
+                                        "example": "javier@kodigo.com"
                                     },
                                     "password": {
                                         "type": "string",
@@ -362,47 +362,18 @@
                     "Órdenes"
                 ],
                 "summary": "Listar órdenes del usuario",
-                "description": "Retorna una lista paginada de órdenes del usuario autenticado",
+                "description": "Retorna una lista de órdenes del usuario autenticado",
                 "operationId": "getOrders",
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "Número de página",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": 1
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Lista de órdenes",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "current_page": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Order"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "per_page": {
-                                            "type": "integer",
-                                            "example": 15
-                                        }
-                                    },
-                                    "type": "object"
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Order"
+                                    }
                                 }
                             }
                         }
@@ -452,7 +423,7 @@
                                     },
                                     "shipping_address": {
                                         "type": "string",
-                                        "example": "Calle Principal 123, Ciudad"
+                                        "example": "San Salvador Centro, San Salvador"
                                     },
                                     "notes": {
                                         "type": "string",
@@ -700,61 +671,18 @@
                     "Productos"
                 ],
                 "summary": "Listar productos",
-                "description": "Retorna una lista paginada de productos activos",
+                "description": "Retorna una lista de productos activos",
                 "operationId": "getProducts",
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "Número de página",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": 1
-                        }
-                    },
-                    {
-                        "name": "per_page",
-                        "in": "query",
-                        "description": "Productos por página",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": 15
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Lista de productos",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "current_page": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Product"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "integer",
-                                            "example": 12
-                                        },
-                                        "per_page": {
-                                            "type": "integer",
-                                            "example": 15
-                                        },
-                                        "last_page": {
-                                            "type": "integer",
-                                            "example": 1
-                                        }
-                                    },
-                                    "type": "object"
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Product"
+                                    }
                                 }
                             }
                         }
@@ -1037,6 +965,13 @@
     "components": {
         "schemas": {
             "User": {
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "created_at",
+                    "updated_at"
+                ],
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -1080,6 +1015,16 @@
                 "type": "object"
             },
             "Product": {
+                "required": [
+                    "id",
+                    "sku",
+                    "name",
+                    "price",
+                    "stock",
+                    "is_active",
+                    "created_at",
+                    "updated_at"
+                ],
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -1132,6 +1077,16 @@
                 "type": "object"
             },
             "OrderItem": {
+                "required": [
+                    "id",
+                    "order_id",
+                    "product_id",
+                    "quantity",
+                    "price",
+                    "subtotal",
+                    "created_at",
+                    "updated_at"
+                ],
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -1174,6 +1129,16 @@
                 "type": "object"
             },
             "Payment": {
+                "required": [
+                    "id",
+                    "order_id",
+                    "stripe_payment_intent_id",
+                    "amount",
+                    "currency",
+                    "status",
+                    "created_at",
+                    "updated_at"
+                ],
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -1232,6 +1197,15 @@
                 "type": "object"
             },
             "Order": {
+                "required": [
+                    "id",
+                    "user_id",
+                    "total",
+                    "status",
+                    "shipping_address",
+                    "created_at",
+                    "updated_at"
+                ],
                 "properties": {
                     "id": {
                         "type": "integer",

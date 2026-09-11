@@ -24,41 +24,16 @@ class ProductController extends Controller
     #[OA\Get(
         path: '/products',
         summary: 'Listar productos',
-        description: 'Retorna una lista paginada de productos activos',
+        description: 'Retorna una lista de productos activos',
         operationId: 'getProducts',
         tags: ['Productos'],
-        parameters: [
-            new OA\Parameter(
-                name: 'page',
-                in: 'query',
-                description: 'Número de página',
-                required: false,
-                schema: new OA\Schema(type: 'integer', default: 1)
-            ),
-            new OA\Parameter(
-                name: 'per_page',
-                in: 'query',
-                description: 'Productos por página',
-                required: false,
-                schema: new OA\Schema(type: 'integer', default: 15)
-            ),
-        ],
         responses: [
             new OA\Response(
                 response: 200,
                 description: 'Lista de productos',
                 content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'current_page', type: 'integer', example: 1),
-                        new OA\Property(
-                            property: 'data',
-                            type: 'array',
-                            items: new OA\Items(ref: '#/components/schemas/Product')
-                        ),
-                        new OA\Property(property: 'total', type: 'integer', example: 12),
-                        new OA\Property(property: 'per_page', type: 'integer', example: 15),
-                        new OA\Property(property: 'last_page', type: 'integer', example: 1),
-                    ]
+                    type: 'array',
+                    items: new OA\Items(ref: '#/components/schemas/Product')
                 )
             ),
         ]

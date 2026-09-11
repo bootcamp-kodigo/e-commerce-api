@@ -8,10 +8,18 @@ API REST para sistema de comercio electrónico con autenticación JWT, integraci
 - CRUD completo de productos
 - Gestión de órdenes de compra
 - Integración con Stripe para procesamiento de pagos
-- Documentación Swagger/OpenAPI completa
+- Documentación Swagger/OpenAPI
 - Manejo global de errores
 - Validaciones con Form Requests
 - Base de datos MySQL con relaciones bien definidas
+
+## Tecnologías y Paquetes Principales
+
+- **Laravel 12**: Framework PHP
+- **tymon/jwt-auth v2.3.0**: Autenticación JWT usando el guard `api` de Laravel
+- **stripe/stripe-php**: Integración con la pasarela de pagos Stripe
+- **darkaonline/l5-swagger**: Documentación automática de la API
+- **MySQL 8.0**: Base de datos relacional
 
 ## Requisitos
 
@@ -25,7 +33,7 @@ API REST para sistema de comercio electrónico con autenticación JWT, integraci
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/bootcamp-kodigo/e-commerce-api.git
 cd e-commerce-api
 ```
 
@@ -59,6 +67,10 @@ STRIPE_KEY=pk_test_xxx
 STRIPE_SECRET=sk_test_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
 STRIPE_CURRENCY=usd
+
+# Swagger
+L5_SWAGGER_CONST_HOST=http://localhost:8000/api
+L5_SWAGGER_GENERATE_ALWAYS=true
 ```
 
 ### 4. Generar clave de la aplicación
@@ -216,7 +228,7 @@ curl -X POST http://localhost:8000/api/payments/confirm \
 
 ```
 app/
-├── Contracts/                          # Interfaces (Dependency Inversion)
+├── Contracts/                          
 │   ├── AuthServiceInterface.php
 │   ├── OrderServiceInterface.php
 │   ├── PaymentServiceInterface.php
@@ -225,7 +237,7 @@ app/
 ├── Exceptions/
 │   └── ApiExceptionHandler.php         # Manejo global de errores
 ├── Http/
-│   ├── Controllers/                    # Thin controllers (solo delegan)
+│   ├── Controllers/
 │   │   ├── AuthController.php
 │   │   ├── ProductController.php
 │   │   ├── OrderController.php
@@ -239,7 +251,7 @@ app/
 │   ├── Order.php
 │   ├── OrderItem.php
 │   └── Payment.php
-├── Services/                           # Lógica de negocio (Single Responsibility)
+├── Services/                           # Lógica de negocio
 │   ├── AuthService.php                 # Autenticación JWT
 │   ├── OrderService.php                # Gestión de órdenes
 │   ├── PaymentService.php              # Orquestador de pagos
@@ -314,6 +326,3 @@ Todos los errores se retornan en formato JSON consistente:
 | 422 | Error de validación |
 | 500 | Error interno del servidor |
 
-## Licencia
-
-Este proyecto fue desarrollado como parte de un bootcamp de desarrollo.

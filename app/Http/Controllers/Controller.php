@@ -19,9 +19,9 @@ use OpenApi\Attributes as OA;
 )]
 #[OA\SecurityScheme(
     securityScheme: 'bearerAuth',
-    type: 'apiKey',
-    in: 'header',
-    name: 'Authorization',
+    type: 'http',
+    scheme: 'bearer',
+    bearerFormat: 'JWT',
     description: 'JWT Authorization header. Ejemplo: "Authorization: Bearer {token}"'
 )]
 abstract class Controller

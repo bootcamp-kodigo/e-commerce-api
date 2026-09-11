@@ -7,7 +7,7 @@ use App\Models\User;
 
 interface OrderServiceInterface
 {
-    public function getUserOrders(User $user, int $perPage = 15);
+    public function getUserOrders(User $user);
 
     public function getOrderForUser(int $orderId, User $user): ?Order;
 

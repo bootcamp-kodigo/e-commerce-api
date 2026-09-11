@@ -24,34 +24,17 @@ class OrderController extends Controller
     #[OA\Get(
         path: '/orders',
         summary: 'Listar órdenes del usuario',
-        description: 'Retorna una lista paginada de órdenes del usuario autenticado',
+        description: 'Retorna una lista de órdenes del usuario autenticado',
         operationId: 'getOrders',
         tags: ['Órdenes'],
         security: [['bearerAuth' => []]],
-        parameters: [
-            new OA\Parameter(
-                name: 'page',
-                in: 'query',
-                description: 'Número de página',
-                required: false,
-                schema: new OA\Schema(type: 'integer', default: 1)
-            ),
-        ],
         responses: [
             new OA\Response(
                 response: 200,
                 description: 'Lista de órdenes',
                 content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'current_page', type: 'integer', example: 1),
-                        new OA\Property(
-                            property: 'data',
-                            type: 'array',
-                            items: new OA\Items(ref: '#/components/schemas/Order')
-                        ),
-                        new OA\Property(property: 'total', type: 'integer', example: 1),
-                        new OA\Property(property: 'per_page', type: 'integer', example: 15),
-                    ]
+                    type: 'array',
+                    items: new OA\Items(ref: '#/components/schemas/Order')
                 )
             ),
             new OA\Response(
@@ -136,7 +119,7 @@ class OrderController extends Controller
                             ]
                         )
                     ),
-                    new OA\Property(property: 'shipping_address', type: 'string', example: 'Calle Principal 123, Ciudad'),
+                    new OA\Property(property: 'shipping_address', type: 'string', example: 'San Salvador Centro, San Salvador'),
                     new OA\Property(property: 'notes', type: 'string', example: 'Entregar en horario de oficina'),
                 ]
             )

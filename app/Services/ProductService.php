@@ -7,11 +7,11 @@ use App\Models\Product;
 
 class ProductService implements ProductServiceInterface
 {
-    public function getActiveProducts(int $perPage = 15)
+    public function getActiveProducts()
     {
         return Product::where('is_active', true)
             ->orderBy('name')
-            ->paginate($perPage);
+            ->get();
     }
 
     public function getProduct(int $id): ?Product

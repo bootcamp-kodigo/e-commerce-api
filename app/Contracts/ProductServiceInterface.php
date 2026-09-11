@@ -6,7 +6,7 @@ use App\Models\Product;
 
 interface ProductServiceInterface
 {
-    public function getActiveProducts(int $perPage = 15);
+    public function getActiveProducts();
 
     public function getProduct(int $id): ?Product;
 

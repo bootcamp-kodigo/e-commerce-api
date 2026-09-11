@@ -10,12 +10,12 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService implements OrderServiceInterface
 {
-    public function getUserOrders(User $user, int $perPage = 15)
+    public function getUserOrders(User $user)
     {
         return $user->orders()
             ->with(['items.product', 'payment'])
             ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+            ->get();
     }
 
     public function getOrderForUser(int $orderId, User $user): ?Order

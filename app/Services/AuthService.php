@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Contracts\AuthServiceInterface;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthService implements AuthServiceInterface
 {
@@ -18,13 +17,13 @@ class AuthService implements AuthServiceInterface
             'phone' => $data['phone'] ?? null,
         ]);
 
-        $token = JWTAuth::fromUser($user);
+        $token = auth('api')->login($user);
 
         return [
             'user' => $user,
             'token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => config('jwt.ttl') * 60,
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
         ];
     }
 
@@ -32,30 +31,30 @@ class AuthService implements AuthServiceInterface
     {
         $credentials = ['email' => $email, 'password' => $password];
 
-        if (!$token = JWTAuth::attempt($credentials)) {
+        if (!$token = auth('api')->attempt($credentials)) {
             return null;
         }
 
         return [
-            'user' => auth()->user(),
+            'user' => auth('api')->user(),
             'token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => config('jwt.ttl') * 60,
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
         ];
     }
 
     public function logout(): void
     {
-        JWTAuth::invalidate(JWTAuth::getToken());
+        auth('api')->logout();
     }
 
     public function refresh(): string
     {
-        return JWTAuth::refresh(JWTAuth::getToken());
+        return auth('api')->refresh();
     }
 
     public function getUser(): User
     {
-        return auth()->user();
+        return auth('api')->user();
     }
 }

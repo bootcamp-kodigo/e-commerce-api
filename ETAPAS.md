@@ -21,7 +21,7 @@ Preparar el entorno de desarrollo, instalar dependencias y configurar los servic
 
 | Paquete | Versión | Propósito |
 |---------|---------|-----------|
-| `php-open-source-saver/jwt-auth` | v2.9.3 | Autenticación mediante tokens JWT |
+| `tymon/jwt-auth` | v2.3.0 | Autenticación mediante tokens JWT |
 | `darkaonline/l5-swagger` | v11.1.0 | Documentación automática de la API |
 | `stripe/stripe-php` | v21.3.2 | Integración con la pasarela de pagos Stripe |
 
@@ -678,6 +678,333 @@ En el archivo `.env`:
 STRIPE_KEY=pk_test_...
 STRIPE_SECRET=sk_test_...
 ```
+
+---
+
+## Cambio de Paquete JWT
+
+### Contexto
+Inicialmente se instaló `php-open-source-saver/jwt-auth` v2.9.3, pero posteriormente se cambió a `tymon/jwt-auth` v2.3.0 para alinearse con el contenido del bootcamp.
+
+### Proceso de Migración
+
+1. **Desinstalación del paquete anterior:**
+   ```bash
+   composer remove php-open-source-saver/jwt-auth
+   ```
+
+2. **Instalación de tymon/jwt-auth:**
+   ```bash
+   composer require tymon/jwt-auth
+   ```
+   - Se instaló la versión v2.3.0, compatible con Laravel 13 y PHP 8.5
+
+3. **Actualización de namespaces en el código:**
+   - `app/Services/AuthService.php`: Cambiar `PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth` a `Tymon\JWTAuth\Facades\JWTAuth`
+   - `app/Models/User.php`: Cambiar `PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject` a `Tymon\JWTAuth\Contracts\JWTSubject`
+
+4. **Actualización de configuración:**
+   - `config/jwt.php`: Actualizar los providers de `PHPOpenSourceSaver\...` a `Tymon\JWTAuth\...`
+
+5. **Regeneración de clave secreta:**
+   ```bash
+   php artisan jwt:secret --force
+   ```
+
+### Resultado
+Todos los endpoints de autenticación funcionaron correctamente con el nuevo paquete:
+- ✅ Login
+- ✅ Register
+- ✅ Logout
+- ✅ Refresh token
+- ✅ Obtener usuario autenticado
+
+### Nota
+Ambos paquetes tienen la misma API y funcionalidad. `php-open-source-saver/jwt-auth` es un fork mantenido de `tymon/jwt-auth` para versiones más recientes de Laravel. La decisión de cambiar fue para mantener consistencia con el contenido del bootcamp.
+
+---
+
+## Cambio en el Enfoque de Autenticación
+
+### Contexto
+Inicialmente se usó `JWTAuth::attempt()` directamente en el `AuthService`, pero posteriormente se cambió a `auth('api')->attempt()` para alinearse con las convenciones de Laravel y el contenido del bootcamp.
+
+### Diferencia entre los enfoques
+
+#### Enfoque inicial: `JWTAuth::attempt()`
+```php
+// app/Services/AuthService.php
+use Tymon\JWTAuth\Facades\JWTAuth;
+
+public function login(string $email, string $password): ?array
+{
+    $credentials = ['email' => $email, 'password' => $password];
+
+    if (!$token = JWTAuth::attempt($credentials)) {
+        return null;
+    }
+
+    return [
+        'user' => auth()->user(),
+        'token' => $token,
+        'token_type' => 'bearer',
+        'expires_in' => config('jwt.ttl') * 60,
+    ];
+}
+```
+
+**Características:**
+- Llama directamente al facade del paquete JWT
+- No pasa por el sistema de guards de Laravel
+- Más acoplado al paquete específico
+
+#### Enfoque actual: `auth('api')->attempt()`
+```php
+// app/Services/AuthService.php
+public function login(string $email, string $password): ?array
+{
+    $credentials = ['email' => $email, 'password' => $password];
+
+    if (!$token = auth('api')->attempt($credentials)) {
+        return null;
+    }
+
+    return [
+        'user' => auth('api')->user(),
+        'token' => $token,
+        'token_type' => 'bearer',
+        'expires_in' => auth('api')->factory()->getTTL() * 60,
+    ];
+}
+```
+
+**Características:**
+- Usa el guard `api` configurado en `config/auth.php`
+- Más idiomático de Laravel
+- Si cambias de JWT a otro driver (ej: Sanctum), solo cambias el guard
+- `auth('api')->user()` obtiene el usuario autenticado
+- `auth('api')->factory()->getTTL()` obtiene el TTL del config
+
+### Cambios realizados en AuthService
+
+| Método | Antes | Después |
+|--------|-------|---------|
+| `register()` | `JWTAuth::fromUser($user)` | `auth('api')->login($user)` |
+| `login()` | `JWTAuth::attempt($credentials)` | `auth('api')->attempt($credentials)` |
+| `logout()` | `JWTAuth::invalidate(JWTAuth::getToken())` | `auth('api')->logout()` |
+| `refresh()` | `JWTAuth::refresh(JWTAuth::getToken())` | `auth('api')->refresh()` |
+| `getUser()` | `auth()->user()` | `auth('api')->user()` |
+| `expires_in` | `config('jwt.ttl') * 60` | `auth('api')->factory()->getTTL() * 60` |
+
+### Ventajas del nuevo enfoque
+
+1. **Sigue las convenciones de Laravel**: Usa el sistema de guards estándar
+2. **Más flexible**: Si cambias de paquete JWT, no tienes que cambiar todo el código
+3. **Más fácil de testear**: Puedes mockear el guard fácilmente
+4. **Consistente con el bootcamp**: Usa el mismo enfoque que se enseña en clase
+
+### Resultado
+Todos los endpoints de autenticación funcionan correctamente con el nuevo enfoque:
+- ✅ Login con `auth('api')->attempt()`
+- ✅ Register con `auth('api')->login()`
+- ✅ Logout con `auth('api')->logout()`
+- ✅ Refresh con `auth('api')->refresh()`
+- ✅ Obtener usuario con `auth('api')->user()`
+
+---
+
+## Eliminación de Paginación en Endpoints
+
+### Contexto
+Inicialmente, los endpoints `GET /api/products` y `GET /api/orders` retornaban resultados paginados usando el método `paginate()` de Laravel. Posteriormente se decidió simplificar estos endpoints para que retornen arrays simples sin paginación.
+
+### Cambios realizados
+
+#### 1. Interfaces (Contracts)
+
+**Antes:**
+```php
+// app/Contracts/ProductServiceInterface.php
+public function getActiveProducts(int $perPage = 15);
+
+// app/Contracts/OrderServiceInterface.php
+public function getUserOrders(User $user, int $perPage = 15);
+```
+
+**Después:**
+```php
+// app/Contracts/ProductServiceInterface.php
+public function getActiveProducts();
+
+// app/Contracts/OrderServiceInterface.php
+public function getUserOrders(User $user);
+```
+
+#### 2. Servicios
+
+**Antes:**
+```php
+// app/Services/ProductService.php
+public function getActiveProducts(int $perPage = 15)
+{
+    return Product::where('is_active', true)
+        ->orderBy('name')
+        ->paginate($perPage);
+}
+
+// app/Services/OrderService.php
+public function getUserOrders(User $user, int $perPage = 15)
+{
+    return $user->orders()
+        ->with(['items.product', 'payment'])
+        ->orderBy('created_at', 'desc')
+        ->paginate($perPage);
+}
+```
+
+**Después:**
+```php
+// app/Services/ProductService.php
+public function getActiveProducts()
+{
+    return Product::where('is_active', true)
+        ->orderBy('name')
+        ->get();
+}
+
+// app/Services/OrderService.php
+public function getUserOrders(User $user)
+{
+    return $user->orders()
+        ->with(['items.product', 'payment'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+}
+```
+
+#### 3. Documentación Swagger
+
+**Antes:**
+```php
+// app/Http/Controllers/ProductController.php
+#[OA\Get(
+    path: '/products',
+    description: 'Retorna una lista paginada de productos activos',
+    parameters: [
+        new OA\Parameter(name: 'page', in: 'query', ...),
+        new OA\Parameter(name: 'per_page', in: 'query', ...),
+    ],
+    responses: [
+        new OA\Response(
+            response: 200,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'current_page', type: 'integer'),
+                    new OA\Property(property: 'data', type: 'array', ...),
+                    new OA\Property(property: 'total', type: 'integer'),
+                    new OA\Property(property: 'per_page', type: 'integer'),
+                    new OA\Property(property: 'last_page', type: 'integer'),
+                ]
+            )
+        ),
+    ]
+)]
+
+// app/Http/Controllers/OrderController.php
+#[OA\Get(
+    path: '/orders',
+    description: 'Retorna una lista paginada de órdenes del usuario autenticado',
+    parameters: [
+        new OA\Parameter(name: 'page', in: 'query', ...),
+    ],
+    responses: [
+        new OA\Response(
+            response: 200,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'current_page', type: 'integer'),
+                    new OA\Property(property: 'data', type: 'array', ...),
+                    new OA\Property(property: 'total', type: 'integer'),
+                    new OA\Property(property: 'per_page', type: 'integer'),
+                ]
+            )
+        ),
+    ]
+)]
+```
+
+**Después:**
+```php
+// app/Http/Controllers/ProductController.php
+#[OA\Get(
+    path: '/products',
+    description: 'Retorna una lista de productos activos',
+    responses: [
+        new OA\Response(
+            response: 200,
+            content: new OA\JsonContent(
+                type: 'array',
+                items: new OA\Items(ref: '#/components/schemas/Product')
+            )
+        ),
+    ]
+)]
+
+// app/Http/Controllers/OrderController.php
+#[OA\Get(
+    path: '/orders',
+    description: 'Retorna una lista de órdenes del usuario autenticado',
+    responses: [
+        new OA\Response(
+            response: 200,
+            content: new OA\JsonContent(
+                type: 'array',
+                items: new OA\Items(ref: '#/components/schemas/Order')
+            )
+        ),
+    ]
+)]
+```
+
+### Diferencia en las respuestas
+
+**Antes (con paginación):**
+```json
+{
+  "current_page": 1,
+  "data": [
+    { "id": 1, "name": "Producto 1", ... },
+    { "id": 2, "name": "Producto 2", ... }
+  ],
+  "total": 12,
+  "per_page": 15,
+  "last_page": 1
+}
+```
+
+**Después (sin paginación):**
+```json
+[
+  { "id": 1, "name": "Producto 1", ... },
+  { "id": 2, "name": "Producto 2", ... }
+]
+```
+
+### Razón del cambio
+- Simplificar la estructura de respuesta
+- Facilitar el consumo de la API en etapas iniciales
+- Reducir complejidad innecesaria cuando el volumen de datos es bajo
+
+### Archivos modificados
+- `app/Contracts/ProductServiceInterface.php`
+- `app/Contracts/OrderServiceInterface.php`
+- `app/Services/ProductService.php`
+- `app/Services/OrderService.php`
+- `app/Http/Controllers/ProductController.php` (documentación Swagger)
+- `app/Http/Controllers/OrderController.php` (documentación Swagger)
+
+### Resultado
+Los endpoints ahora retornan arrays simples sin metadatos de paginación, facilitando el consumo de la API.
 
 ---
 

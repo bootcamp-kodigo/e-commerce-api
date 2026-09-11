@@ -7,6 +7,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'User',
     type: 'object',
+    required: ['id', 'name', 'email', 'created_at', 'updated_at'],
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'name', type: 'string', example: 'Juan Pérez'),
@@ -21,6 +22,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'Product',
     type: 'object',
+    required: ['id', 'sku', 'name', 'price', 'stock', 'is_active', 'created_at', 'updated_at'],
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'sku', type: 'string', example: 'LAPTOP-001'),
@@ -38,6 +40,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'OrderItem',
     type: 'object',
+    required: ['id', 'order_id', 'product_id', 'quantity', 'price', 'subtotal', 'created_at', 'updated_at'],
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'order_id', type: 'integer', example: 1),
@@ -56,6 +59,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'Payment',
     type: 'object',
+    required: ['id', 'order_id', 'stripe_payment_intent_id', 'amount', 'currency', 'status', 'created_at', 'updated_at'],
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'order_id', type: 'integer', example: 1),
@@ -73,6 +77,7 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'Order',
     type: 'object',
+    required: ['id', 'user_id', 'total', 'status', 'shipping_address', 'created_at', 'updated_at'],
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'user_id', type: 'integer', example: 1),
