@@ -1,58 +1,328 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# E-commerce API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API REST para sistema de comercio electrónico con autenticación JWT, integración con Stripe para pagos y documentación Swagger completa.
 
-## About Laravel
+## Características
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Autenticación JWT (registro, login, logout, refresh)
+- CRUD completo de productos
+- Gestión de órdenes de compra
+- Integración con Stripe para procesamiento de pagos
+- Documentación Swagger/OpenAPI
+- Manejo global de errores
+- Validaciones con Form Requests
+- Base de datos MySQL con relaciones bien definidas
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tecnologías y Paquetes Principales
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Laravel 12**: Framework PHP
+- **tymon/jwt-auth v2.3.0**: Autenticación JWT usando el guard `api` de Laravel
+- **stripe/stripe-php**: Integración con la pasarela de pagos Stripe
+- **darkaonline/l5-swagger**: Documentación automática de la API
+- **MySQL 8.0**: Base de datos relacional
 
-## Learning Laravel
+## Requisitos
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- PHP 8.2 o superior
+- Composer
+- MySQL 8.0 o superior
+- Extensión de PHP: `pdo_mysql`, `sodium`
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Instalación
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Clonar el repositorio
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/bootcamp-kodigo/e-commerce-api.git
+cd e-commerce-api
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Instalar dependencias
 
-## Contributing
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Configurar variables de entorno
 
-## Code of Conduct
+Copiar el archivo `.env.example` a `.env`:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+cp .env.example .env
+```
 
-## Security Vulnerabilities
+Editar el archivo `.env` con tus credenciales:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```env
+# Base de datos
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=e_commerce
+DB_USERNAME=tu_usuario
+DB_PASSWORD=tu_password
 
-## License
+# Stripe (obtener de https://dashboard.stripe.com/test/apikeys)
+STRIPE_KEY=pk_test_xxx
+STRIPE_SECRET=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+STRIPE_CURRENCY=usd
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Swagger
+L5_SWAGGER_CONST_HOST=http://localhost:8000/api
+L5_SWAGGER_GENERATE_ALWAYS=true
+```
+
+### 4. Generar clave de la aplicación
+
+```bash
+php artisan key:generate
+```
+
+### 5. Generar clave JWT
+
+```bash
+php artisan jwt:secret
+```
+
+### 6. Crear la base de datos
+
+Crear una base de datos MySQL vacía con el nombre especificado en `.env`:
+
+```sql
+CREATE DATABASE e_commerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 7. Ejecutar migraciones y seeders
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Esto creará todas las tablas y poblará la base de datos con datos de prueba.
+
+### 8. Generar documentación Swagger
+
+```bash
+php artisan l5-swagger:generate
+```
+
+### 9. Iniciar el servidor
+
+```bash
+php artisan serve
+```
+
+La API estará disponible en: `http://localhost:8000/api`
+
+## Documentación API
+
+Una vez iniciado el servidor, puedes acceder a la documentación interactiva de Swagger UI en:
+
+```
+http://localhost:8000/api/documentation
+```
+
+## Endpoints Principales
+
+### Autenticación
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/auth/register` | Registrar nuevo usuario | No |
+| POST | `/api/auth/login` | Iniciar sesión | No |
+| POST | `/api/auth/logout` | Cerrar sesión | Sí |
+| GET | `/api/auth/me` | Obtener usuario actual | Sí |
+| POST | `/api/auth/refresh` | Renovar token JWT | Sí |
+
+### Productos
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/products` | Listar productos | No |
+| GET | `/api/products/{id}` | Ver producto | No |
+| POST | `/api/products` | Crear producto | Sí |
+| PUT | `/api/products/{id}` | Actualizar producto | Sí |
+| DELETE | `/api/products/{id}` | Eliminar producto | Sí |
+
+### Órdenes
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/orders` | Listar órdenes del usuario | Sí |
+| GET | `/api/orders/{id}` | Ver orden | Sí |
+| POST | `/api/orders` | Crear orden | Sí |
+
+### Pagos
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/payments/create-intent/{order}` | Crear PaymentIntent | Sí |
+| POST | `/api/payments/confirm` | Confirmar pago | Sí |
+
+## Credenciales de Prueba
+
+Después de ejecutar los seeders, puedes usar estas credenciales:
+
+| Usuario | Email | Password | Rol |
+|---------|-------|----------|-----|
+| Admin | admin@example.com | password123 | admin |
+| Cliente 1 | john@example.com | password123 | customer |
+| Cliente 2 | jane@example.com | password123 | customer |
+| Cliente 3 | carlos@example.com | password123 | customer |
+| Cliente 4 | maria@example.com | password123 | customer |
+
+## Flujo de Uso
+
+### 1. Autenticación
+
+```bash
+# Login
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"john@example.com","password":"password123"}'
+
+# Respuesta: { "token": "eyJ0eXAi...", "token_type": "bearer", ... }
+```
+
+### 2. Listar Productos (público)
+
+```bash
+curl http://localhost:8000/api/products
+```
+
+### 3. Crear Orden
+
+```bash
+curl -X POST http://localhost:8000/api/orders \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": [
+      {"product_id": 1, "quantity": 2},
+      {"product_id": 3, "quantity": 1}
+    ],
+    "shipping_address": "Calle Principal 123, Ciudad",
+    "notes": "Entregar en horario de oficina"
+  }'
+```
+
+### 4. Procesar Pago
+
+```bash
+# Crear PaymentIntent
+curl -X POST http://localhost:8000/api/payments/create-intent/1 \
+  -H "Authorization: Bearer {token}"
+
+# Respuesta: { "client_secret": "pi_xxx_secret_xxx", ... }
+
+# Usar client_secret con Stripe.js en el frontend
+# Luego confirmar el pago
+curl -X POST http://localhost:8000/api/payments/confirm \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"payment_intent_id": "pi_xxx"}'
+```
+
+## Estructura del Proyecto
+
+```
+app/
+├── Contracts/                          
+│   ├── AuthServiceInterface.php
+│   ├── OrderServiceInterface.php
+│   ├── PaymentServiceInterface.php
+│   ├── ProductServiceInterface.php
+│   └── TransactionServiceInterface.php
+├── Exceptions/
+│   └── ApiExceptionHandler.php         # Manejo global de errores
+├── Http/
+│   ├── Controllers/
+│   │   ├── AuthController.php
+│   │   ├── ProductController.php
+│   │   ├── OrderController.php
+│   │   └── PaymentController.php
+│   ├── Requests/                       # Form Requests (validaciones)
+│   └── Swagger/
+│       └── Schemas.php                 # Schemas OpenAPI
+├── Models/
+│   ├── User.php
+│   ├── Product.php
+│   ├── Order.php
+│   ├── OrderItem.php
+│   └── Payment.php
+├── Services/                           # Lógica de negocio
+│   ├── AuthService.php                 # Autenticación JWT
+│   ├── OrderService.php                # Gestión de órdenes
+│   ├── PaymentService.php              # Orquestador de pagos
+│   ├── ProductService.php              # Gestión de productos
+│   ├── StripeService.php               # Integración con Stripe
+│   └── TransactionService.php          # Registro de transacciones en BD
+└── Traits/
+    └── HasValidationMessages.php       # Mensajes de validación centralizados
+```
+
+## Base de Datos
+
+### Tablas
+
+- **users**: Clientes del sistema (con rol customer/admin)
+- **products**: Catálogo de productos
+- **orders**: Órdenes de compra
+- **order_items**: Detalle de productos por orden
+- **payments**: Registro de transacciones de Stripe
+
+### Relaciones
+
+```
+User ──hasMany──> Orders
+Order ──belongsTo──> User
+Order ──hasMany──> OrderItems
+Order ──hasOne──> Payment
+OrderItem ──belongsTo──> Order
+OrderItem ──belongsTo──> Product
+Product ──hasMany──> OrderItems
+Payment ──belongsTo──> Order
+```
+
+## Configuración de Stripe
+
+1. Crear cuenta en [Stripe](https://stripe.com)
+2. Obtener las API keys de modo test en [Dashboard → Developers → API keys](https://dashboard.stripe.com/test/apikeys)
+3. Configurar en `.env`:
+   - `STRIPE_KEY`: Publishable key (pk_test_...)
+   - `STRIPE_SECRET`: Secret key (sk_test_...)
+   - `STRIPE_WEBHOOK_SECRET`: Webhook secret (opcional, para webhooks)
+
+### Tarjetas de prueba
+
+| Número | Descripción |
+|--------|-------------|
+| 4242 4242 4242 4242 | Éxito |
+| 4000 0000 0000 0002 | Rechazada |
+
+Usar cualquier fecha futura y cualquier CVC de 3 dígitos.
+
+## Manejo de Errores
+
+Todos los errores se retornan en formato JSON consistente:
+
+```json
+{
+  "message": "Descripción del error",
+  "errors": {
+    "campo": ["Mensaje de error específico"]
+  }
+}
+```
+
+| Código | Descripción |
+|--------|-------------|
+| 400 | Bad Request |
+| 401 | No autenticado |
+| 403 | No autorizado |
+| 404 | Recurso no encontrado |
+| 405 | Método no permitido |
+| 422 | Error de validación |
+| 500 | Error interno del servidor |
+
